@@ -97,15 +97,24 @@ TEST_F(ServerTest, ConstructionWithPipeName) {
 TEST_F(ServerTest, SendMessage) {
   _server->send("foobar");
   EXPECT_EQ(1, message_count());
-  _server->send("barbaz");
+  _server->send("pillepalle");
   EXPECT_EQ(2, message_count());
 
   char buf[200];
   int recvd_size;
+
   get_message(buf, sizeof(buf), recvd_size);
   EXPECT_EQ(recvd_size, 6);
   buf[recvd_size] = '\0';
   ASSERT_TRUE(!strcmp("foobar", buf));
+  EXPECT_EQ(1, message_count());
+
+  get_message(buf, sizeof(buf), recvd_size);
+  EXPECT_EQ(recvd_size, 10);
+  buf[recvd_size] = '\0';
+  ASSERT_TRUE(!strcmp("pillepalle", buf));
+  EXPECT_EQ(0, message_count());
+
 }
 
 }  // namespace
