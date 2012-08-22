@@ -110,7 +110,7 @@ private:
 map<string, MockQueueData> MockQueue::_name2message_data;
 
 #define MAX_MESSAGES 5
-#define MAX_MESSAGE_SIZE 100
+#define MAX_MESSAGE_SIZE 20
 
 namespace {
 
@@ -189,6 +189,13 @@ TEST_F(ServerTest, SendMessage) {
 
 }
 
+
+  // Tests that sending oversized messages results in
+  // the message being split up in several
+  TEST_F(ServerTest, SendOversizedMessage) {
+    string message("this is a message longer than the max message size");
+    ASSERT_LT(MAX_MESSAGE_SIZE, message.size());
+  }
 }  // namespace
 
 int main(int argc, char **argv) {
