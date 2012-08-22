@@ -1,6 +1,7 @@
 #ifndef IPC_SERVER_HH
 #define IPC_SERVER_HH
 
+#include <algorithm>
 #include <boost/interprocess/ipc/message_queue.hpp>
 
 #include <string>
@@ -23,7 +24,16 @@ public:
 
 
   void send(const string& message) {
-    _mq.send(message.data(), message.size(), 0);
+    int offset = 0;
+    int length = message.size();
+    const char *data = message.data();
+    const int max_message_size = _mq.get_max_msg_size();
+    while(length) {
+      int send_size = min(max_message_size, length);
+      _mq.send(data, send_size, 0);
+      length -= send_size;
+      data += send_size;
+    }
   }
 
 private:

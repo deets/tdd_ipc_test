@@ -52,16 +52,41 @@ struct Message {
 class MockQueueData {
 
 public:
+
   MockQueueData() {}
+
+  MockQueueData(int max_size)
+  : _max_size(max_size)
+  {}
+
+
+  MockQueueData(const MockQueueData &other)
+  : _messages(other._messages)
+  , _max_size(other._max_size)
+  {}
+
+
+  MockQueueData& operator=( const MockQueueData& rhs ) {
+    _messages = rhs._messages;
+    _max_size = rhs._max_size;
+    return *this;
+  }
+
+
+  int get_max_msg_size() const {
+    return _max_size;
+  }
 
 
   int count() {
     return _messages.size();
   }
 
+
   void send(const char *data, int length, int priority) {
     _messages.push_back(Message(data, length, priority));
   }
+
 
   void get_message(char *buf, int buflen, int &recvd_size) {
     const Message &msg = _messages.front();
@@ -70,8 +95,11 @@ public:
     _messages.pop_front();
   }
 
+
 private:
   list<Message> _messages;
+  int _max_size;
+
 };
 
 
@@ -82,12 +110,16 @@ public:
   MockQueue(const boost::interprocess::create_only_t&, const string &name, int capacity, int max_size)
   : _name(name)
   {
-    _name2message_data[name] = MockQueueData();
+    _name2message_data[name] = MockQueueData(max_size);
   }
 
 
   void send(const char *data, int length, int priority) {
     _name2message_data[_name].send(data, length, priority);
+  }
+
+  int get_max_msg_size() const {
+    return _name2message_data[_name].get_max_msg_size();
   }
 
 
