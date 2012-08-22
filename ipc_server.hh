@@ -12,6 +12,9 @@ public:
 
   const string& name() const { return _name; }
 
+
+  void send(const string& message) {}
+
 private:
   string _name;
 };
