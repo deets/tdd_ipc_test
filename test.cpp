@@ -15,7 +15,10 @@ using namespace std;
 // this is just to ensure that the server compiles
 // with a real boost queue implementation.
 
-Server<message_queue> RealServer("foobar");
+void real_queue_instantiation() {
+  Server<message_queue> RealServer("foobar", 5, 100);
+  RealServer.send("foobar");
+}
 
 
 struct Message {
@@ -106,6 +109,9 @@ private:
 
 map<string, MockQueueData> MockQueue::_name2message_data;
 
+#define MAX_MESSAGES 5
+#define MAX_MESSAGE_SIZE 100
+
 namespace {
 
 // The fixture for testing class Server.
@@ -117,7 +123,7 @@ class ServerTest : public ::testing::Test {
   ServerTest() : pipe_name("test_server_pipe_name")
   {
     // You can do set-up work for each test here.
-    _server = new Server<MockQueue>(pipe_name.c_str());
+    _server = new Server<MockQueue>(pipe_name.c_str(), MAX_MESSAGES, MAX_MESSAGE_SIZE);
   }
 
   virtual ~ServerTest() {

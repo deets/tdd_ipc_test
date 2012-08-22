@@ -13,9 +13,9 @@ template <class QueueClass>
 class Server {
 public:
 
-  Server(const char *name)
+  Server(const char *name, int capacity, int message_size)
   : _name(name)
-  , _mq(create_only, name, 5, 100)
+  , _mq(create_only, name, capacity, message_size)
   {
   }
 
