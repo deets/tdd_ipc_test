@@ -193,8 +193,11 @@ TEST_F(ServerTest, SendMessage) {
   // Tests that sending oversized messages results in
   // the message being split up in several
   TEST_F(ServerTest, SendOversizedMessage) {
-    string message("this is a message longer than the max message size");
+    string message("a message longer as max message size");
     ASSERT_LT(MAX_MESSAGE_SIZE, message.size());
+    ASSERT_GE(MAX_MESSAGE_SIZE * 2, message.size());
+    _server->send(message);
+    EXPECT_EQ(2, message_count());
   }
 }  // namespace
 
