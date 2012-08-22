@@ -1,6 +1,8 @@
 #include <string>
 #include "gtest/gtest.h"
 #include <map>
+#include <list>
+
 #include <string.h>
 
 #include <boost/interprocess/ipc/message_queue.hpp>
@@ -10,6 +12,59 @@
 using namespace std;
 
 
+struct Message {
+
+  int priority;
+  int length;
+  char *data;
+
+  Message(const char* data, int length, int priority)
+    : priority(priority)
+    , length(length)
+  {
+    this->data = (char*)malloc(length);
+    memcpy(this->data, data, length);
+  }
+
+
+  Message(const Message& other) {
+    length = other.length;
+    priority = other.priority;
+    data = (char*)malloc(length);
+    memcpy(data, other.data, length);
+  }
+
+  virtual ~Message() {
+    free(data);
+  }
+
+};
+
+class MockQueueData {
+
+public:
+  MockQueueData() {}
+
+
+  int count() {
+    return _messages.size();
+  }
+
+  void send(const char *data, int length, int priority) {
+    _messages.push_back(Message(data, length, priority));
+  }
+
+  void get_message(char *buf, int buflen, int &recvd_size) {
+    const Message &msg = _messages.front();
+    recvd_size = msg.length;
+    memcpy(buf, msg.data, msg.length);
+    _messages.pop_front();
+  }
+
+private:
+  list<Message> _messages;
+};
+
 
 class MockQueue {
 
@@ -18,26 +73,32 @@ public:
   MockQueue(const string &name)
   : _name(name)
   {
-    _name2message_count[name] = 0;
+    _name2message_data[name] = MockQueueData();
   }
 
 
-  void send(const char *data, int length, int _priority) {
-    _name2message_count[_name]++;
+  void send(const char *data, int length, int priority) {
+    _name2message_data[_name].send(data, length, priority);
   }
+
 
   static int message_count(const string &name) {
-    return _name2message_count[name];
+    return _name2message_data[name].count();
+  }
+
+
+  static void get_message(const string &name, char *buf, int buflen, int &recvd_size) {
+    _name2message_data[name].get_message(buf, buflen, recvd_size);
   }
 
 private:
   const string _name;
 
-  static map<string, int> _name2message_count;
+  static map<string, MockQueueData> _name2message_data;
 };
 
 
-map<string, int> MockQueue::_name2message_count;
+map<string, MockQueueData> MockQueue::_name2message_data;
 
 namespace {
 
@@ -76,8 +137,7 @@ class ServerTest : public ::testing::Test {
 
 
   void get_message(char *buf, int buflen, int &recvd_size) {
-    recvd_size = 6;
-    strcpy(buf, "foobar");
+    MockQueue::get_message(_server->name(), buf, buflen, recvd_size);
   }
 
   // objects declared here can be used by all tests in the test case for
