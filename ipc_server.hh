@@ -23,7 +23,7 @@ public:
 
 
   void send(const string& message) {
-    _mq.send(message);
+    _mq.send(message.data(), message.size(), 0);
   }
 
 private:

@@ -1,6 +1,7 @@
 #include <string>
 #include "gtest/gtest.h"
 #include <map>
+#include <string.h>
 
 #include <boost/interprocess/ipc/message_queue.hpp>
 
@@ -21,7 +22,7 @@ public:
   }
 
 
-  void send(const string&) {
+  void send(const char *data, int length, int _priority) {
     _name2message_count[_name]++;
   }
 
@@ -73,7 +74,13 @@ class ServerTest : public ::testing::Test {
     return MockQueue::message_count(_server->name());
   }
 
-  // Objects declared here can be used by all tests in the test case for
+
+  void get_message(char *buf, int buflen, int &recvd_size) {
+    recvd_size = 6;
+    strcpy(buf, "foobar");
+  }
+
+  // objects declared here can be used by all tests in the test case for
   // Server.
 
   const string pipe_name;
@@ -83,8 +90,6 @@ class ServerTest : public ::testing::Test {
 
 // Tests that the Server::Bar() method does Abc.
 TEST_F(ServerTest, ConstructionWithPipeName) {
-
-
   EXPECT_EQ(pipe_name, _server->name());
 }
 
@@ -92,8 +97,15 @@ TEST_F(ServerTest, ConstructionWithPipeName) {
 TEST_F(ServerTest, SendMessage) {
   _server->send("foobar");
   EXPECT_EQ(1, message_count());
-  _server->send("foobar");
+  _server->send("barbaz");
   EXPECT_EQ(2, message_count());
+
+  char buf[200];
+  int recvd_size;
+  get_message(buf, sizeof(buf), recvd_size);
+  EXPECT_EQ(recvd_size, 6);
+  buf[recvd_size] = '\0';
+  ASSERT_TRUE(!strcmp("foobar", buf));
 }
 
 }  // namespace
