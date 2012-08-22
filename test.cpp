@@ -36,6 +36,9 @@ class ServerTest : public ::testing::Test {
     // before the destructor).
   }
 
+  int message_count() {
+    return 1;
+  }
   // Objects declared here can be used by all tests in the test case for
   // Server.
 
@@ -54,6 +57,7 @@ TEST_F(ServerTest, ConstructionWithPipeName) {
 // Tests that sending string messages works
 TEST_F(ServerTest, SendMessage) {
   _server->send("foobar");
+  EXPECT_EQ(message_count(), 1);
 }
 
 }  // namespace
