@@ -58,6 +58,8 @@ TEST_F(ServerTest, ConstructionWithPipeName) {
 TEST_F(ServerTest, SendMessage) {
   _server->send("foobar");
   EXPECT_EQ(message_count(), 1);
+  _server->send("foobar");
+  EXPECT_EQ(message_count(), 2);
 }
 
 }  // namespace
