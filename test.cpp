@@ -12,6 +12,12 @@
 using namespace std;
 
 
+// this is just to ensure that the server compiles
+// with a real boost queue implementation.
+
+Server<message_queue> RealServer("foobar");
+
+
 struct Message {
 
   int priority;
@@ -70,7 +76,7 @@ class MockQueue {
 
 public:
 
-  MockQueue(const string &name)
+  MockQueue(const boost::interprocess::create_only_t&, const string &name, int capacity, int max_size)
   : _name(name)
   {
     _name2message_data[name] = MockQueueData();
@@ -111,7 +117,7 @@ class ServerTest : public ::testing::Test {
   ServerTest() : pipe_name("test_server_pipe_name")
   {
     // You can do set-up work for each test here.
-    _server = new Server<MockQueue>(pipe_name);
+    _server = new Server<MockQueue>(pipe_name.c_str());
   }
 
   virtual ~ServerTest() {
