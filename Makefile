@@ -12,5 +12,5 @@ client: client.cpp
 
 all:	server client test
 
-test:   test.cpp
+test:   test.cpp ipc_server.hh
 	${CXX} ${CFLAGS} ${LDFLAGS} -o test test.cpp

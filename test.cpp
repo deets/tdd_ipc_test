@@ -1,9 +1,30 @@
 #include <string>
 #include "gtest/gtest.h"
+#include <map>
+
+#include <boost/interprocess/ipc/message_queue.hpp>
 
 #include "ipc_server.hh"
 
 using namespace std;
+
+
+
+class MockQueue {
+
+public:
+
+  MockQueue(const string &name)
+  {
+    _name2message_count[name] = 0;
+  }
+
+private:
+  static map<string, int> _name2message_count;
+};
+
+
+map<string, int> MockQueue::_name2message_count;
 
 namespace {
 
@@ -16,7 +37,7 @@ class ServerTest : public ::testing::Test {
   ServerTest() : pipe_name("test_server_pipe_name")
   {
     // You can do set-up work for each test here.
-    _server = new Server(pipe_name);
+    _server = new Server<MockQueue>(pipe_name);
   }
 
   virtual ~ServerTest() {
@@ -44,7 +65,7 @@ class ServerTest : public ::testing::Test {
 
   const string pipe_name;
 
-  Server *_server;
+  Server<MockQueue> *_server;
 };
 
 // Tests that the Server::Bar() method does Abc.
