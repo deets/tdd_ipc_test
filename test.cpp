@@ -13,12 +13,14 @@ class ServerTest : public ::testing::Test {
   // You can remove any or all of the following functions if its body
   // is empty.
 
-  ServerTest() {
+  ServerTest() : pipe_name("test_server_pipe_name")
+  {
     // You can do set-up work for each test here.
+    _server = new Server(pipe_name);
   }
 
   virtual ~ServerTest() {
-    // You can do clean-up work that doesn't throw exceptions here.
+    delete _server;
   }
 
   // If the constructor and destructor are not enough for setting up
@@ -34,19 +36,24 @@ class ServerTest : public ::testing::Test {
     // before the destructor).
   }
 
-  // Objects declared here can be used by all tests in the test case for Server.
+  // Objects declared here can be used by all tests in the test case for
+  // Server.
+
+  const string pipe_name;
+
+  Server *_server;
 };
 
 // Tests that the Server::Bar() method does Abc.
-TEST_F(ServerTest, MethodBarDoesAbc) {
-  const string pipe_name = "test_server";
-  Server s(pipe_name);
-  EXPECT_EQ(pipe_name, s.name());
+TEST_F(ServerTest, ConstructionWithPipeName) {
+
+
+  EXPECT_EQ(pipe_name, _server->name());
 }
 
-// Tests that Server does Xyz.
-TEST_F(ServerTest, DoesXyz) {
-  // Exercises the Xyz feature of Server.
+// Tests that sending string messages works
+TEST_F(ServerTest, SendMessage) {
+  _server->send("foobar");
 }
 
 }  // namespace
