@@ -12,6 +12,10 @@
 using namespace std;
 
 
+#define MAX_MESSAGES 5
+#define MAX_MESSAGE_SIZE 20
+
+
 // this is just to ensure that the server compiles
 // with a real boost queue implementation.
 
@@ -89,12 +93,30 @@ public:
 
 
   void get_message(char *buf, int buflen, int &recvd_size) {
+    if(!_messages.size()) {
+      recvd_size = 0;
+      return;
+    }
     const Message &msg = _messages.front();
     recvd_size = msg.length;
     memcpy(buf, msg.data, msg.length);
     _messages.pop_front();
   }
 
+  string get_full_message() {
+    stringstream stream;
+    char buf[MAX_MESSAGE_SIZE];
+    do {
+      int recvd_size;
+      get_message(buf, MAX_MESSAGE_SIZE, recvd_size);
+      if(recvd_size) {
+        stream.write(buf, recvd_size);
+      } else {
+        break;
+      }
+    } while(true);
+    return stream.str();
+  }
 
 private:
   list<Message> _messages;
@@ -132,6 +154,11 @@ public:
     _name2message_data[name].get_message(buf, buflen, recvd_size);
   }
 
+
+  static string get_full_message(const string &name) {
+    return _name2message_data[name].get_full_message();
+  }
+
 private:
   const string _name;
 
@@ -140,9 +167,6 @@ private:
 
 
 map<string, MockQueueData> MockQueue::_name2message_data;
-
-#define MAX_MESSAGES 5
-#define MAX_MESSAGE_SIZE 20
 
 namespace {
 
@@ -182,6 +206,11 @@ class ServerTest : public ::testing::Test {
 
   void get_message(char *buf, int buflen, int &recvd_size) {
     MockQueue::get_message(_server->name(), buf, buflen, recvd_size);
+  }
+
+
+  string get_full_message() {
+    return MockQueue::get_full_message(_server->name());
   }
 
   // objects declared here can be used by all tests in the test case for
@@ -230,6 +259,7 @@ TEST_F(ServerTest, SendMessage) {
     ASSERT_GE(MAX_MESSAGE_SIZE * 2, message.size());
     _server->send(message);
     EXPECT_EQ(2, message_count());
+    EXPECT_EQ(message, get_full_message());
   }
 }  // namespace
 
