@@ -22,7 +22,9 @@ public:
   const string& name() const { return _name; }
 
 
-  void send(const string& message) {}
+  void send(const string& message) {
+    _mq.send(message);
+  }
 
 private:
   string _name;

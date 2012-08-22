@@ -15,11 +15,23 @@ class MockQueue {
 public:
 
   MockQueue(const string &name)
+  : _name(name)
   {
     _name2message_count[name] = 0;
   }
 
+
+  void send(const string&) {
+    _name2message_count[_name]++;
+  }
+
+  static int message_count(const string &name) {
+    return _name2message_count[name];
+  }
+
 private:
+  const string _name;
+
   static map<string, int> _name2message_count;
 };
 
@@ -58,8 +70,9 @@ class ServerTest : public ::testing::Test {
   }
 
   int message_count() {
-    return 1;
+    return MockQueue::message_count(_server->name());
   }
+
   // Objects declared here can be used by all tests in the test case for
   // Server.
 
@@ -78,9 +91,9 @@ TEST_F(ServerTest, ConstructionWithPipeName) {
 // Tests that sending string messages works
 TEST_F(ServerTest, SendMessage) {
   _server->send("foobar");
-  EXPECT_EQ(message_count(), 1);
+  EXPECT_EQ(1, message_count());
   _server->send("foobar");
-  EXPECT_EQ(message_count(), 2);
+  EXPECT_EQ(2, message_count());
 }
 
 }  // namespace
